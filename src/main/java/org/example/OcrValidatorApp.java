@@ -2,7 +2,7 @@ package org.example;
 
 import net.sourceforge.tess4j.Tesseract;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory; // Lascia questo import, Logback dovrebbe gestirlo
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,48 +12,60 @@ public class OcrValidatorApp {
     private static final Logger logger = LoggerFactory.getLogger(OcrValidatorApp.class);
 
     public static void main(String[] args) {
-        System.out.println("DEBUG: Inizio applicazione."); // Questa stampa!
-        logger.info("DEBUG: Inizio applicazione."); // Questa stampa dovrebbe essere visibile nel log
+        // Rimuovi tutto il blocco di codice per l'inizializzazione programmatica qui
+        // (ch.qos.logback.classic.LoggerContext, JoranConfigurator, StatusPrinter ecc.)
+
+        logger.info("Inizio applicazione."); // Ora userà il logger
 
         if (args.length < 2) {
-            System.out.println("ERROR: Utilizzo: java -jar tesseract-ocr-validator-exec.jar <percorso_immagine> <testo_da_cercare>"); // Cambio a System.out
+            logger.error("Utilizzo: java -jar tesseract-ocr-validator-exec.jar <percorso_immagine> <testo_da_cercare>");
             System.exit(1);
         }
 
         File imageFile = new File(args[0]);
         String textToSearch = args[1];
 
+        // Aggiungi questi controlli per l'immagine, usando il logger!
+        if (!imageFile.exists()) {
+            logger.error("L'immagine specificata non esiste: {}", imageFile.getAbsolutePath());
+            System.exit(1);
+        }
+        if (!imageFile.canRead()) {
+            logger.error("Non ho i permessi per leggere l'immagine: {}", imageFile.getAbsolutePath());
+            System.exit(1);
+        }
+
         String tessDataPath = null;
 
         try {
-            System.out.println("DEBUG: Tentativo di estrazione risorse native e dati Tesseract...");
+            logger.info("Tentativo di estrazione risorse native e dati Tesseract...");
             tessDataPath = NativeResourceExtractor.extractAndConfigure();
-            System.out.println("DEBUG: Risorse native e dati Tesseract estratti in: " + tessDataPath); // Questa dovrebbe stampare!
+            logger.info("Risorse native e dati Tesseract estratti in: {}", tessDataPath);
 
             // Il resto del codice dell'OCR
             Tesseract tesseract = new Tesseract();
             tesseract.setDatapath(tessDataPath);
             tesseract.setLanguage("eng+ita");
 
-            System.out.println("DEBUG: Avvio OCR sull'immagine: " + imageFile.getAbsolutePath());
+            logger.info("Avvio OCR sull'immagine: {}", imageFile.getAbsolutePath());
             String result = tesseract.doOCR(imageFile);
 
-            System.out.println("DEBUG: OCR completato. Testo riconosciuto:");
-            System.out.println("\n" + result);
+            logger.info("OCR completato. Testo riconosciuto:");
+            logger.info("\n{}", result); // Stampa il testo riconosciuto su una nuova riga
 
             if (result.contains(textToSearch)) {
-                System.out.println("Final: SUCCESS: Il testo '" + textToSearch + "' è stato trovato nell'immagine.");
+                logger.info("SUCCESS: Il testo '{}' è stato trovato nell'immagine.", textToSearch);
             } else {
-                System.out.println("Final: FAILURE: Il testo '" + textToSearch + "' NON è stato trovato nell'immagine.");
+                logger.warn("FAILURE: Il testo '{}' NON è stato trovato nell'immagine.", textToSearch);
             }
 
         } catch (IOException e) {
-            System.err.println("ERROR: Errore I/O durante l'estrazione delle risorse o l'OCR: " + e.getMessage());
-            e.printStackTrace(); // Stampa lo stack trace
+            logger.error("Errore I/O durante l'estrazione delle risorse o l'OCR: {}", e.getMessage(), e);
+            // Non chiamare e.printStackTrace() qui, il logger lo farà se configurato con un layout appropriato
             System.exit(1);
-        } catch (Exception e) {
-            System.err.println("FATAL ERROR: Errore inatteso durante l'OCR: " + e.getMessage());
-            e.printStackTrace(); // Stampa lo stack trace
+        } catch (Exception e) { // Cattura Exception generica per errori inattesi
+            logger.error("FATAL ERROR: Errore inatteso durante l'OCR: {}", e.getMessage(), e);
+            // Non chiamare e.printStackTrace() qui
             System.exit(1);
         } finally {
             NativeResourceExtractor.cleanup();
