@@ -12,8 +12,8 @@ public class OcrValidatorApp {
     private static final Logger logger = LoggerFactory.getLogger(OcrValidatorApp.class);
 
     public static void main(String[] args) {
-        // Rimuovi tutto il blocco di codice per l'inizializzazione programmatica qui
-        // (ch.qos.logback.classic.LoggerContext, JoranConfigurator, StatusPrinter ecc.)
+        // mvn clean install -U
+        //java -jar target/tesseract-ocr-validator-1.0-SNAPSHOT-exec.jar "/Users/marcellodonzella/Desktop/Screenshot 2025-07-04 alle 18.04.52.png" "Sette"
 
         logger.info("Inizio applicazione."); // Ora userà il logger
 
